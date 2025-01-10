@@ -7,9 +7,14 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(express.json());
 
+app.use(express.json());
+const corsOptions = {
+  origin: 'https://front-nco8.onrender.com', // Asegúrate de poner la URL de tu frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Los métodos que quieres permitir
+  allowedHeaders: ['Content-Type', 'Authorization'] // Cabeceras que se permiten
+};
+app.use(cors(corsOptions));
 // Rutas
 // Obtener todos los usuarios
 app.get('/usuarios', async (req, res) => {
