@@ -1,49 +1,48 @@
 const express = require('express');
-const cors = require('cors');
-const pool = require('./db'); // Conexión a la base de datos
-
-require('dotenv').config();
-
 const app = express();
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Habilitar CORS
+app.use(cors());
 
-app.use(express.json());
-const corsOptions = {
-  origin: 'https://front-nco8.onrender.com', // Asegúrate de poner la URL de tu frontend
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Los métodos que quieres permitir
-  allowedHeaders: ['Content-Type', 'Authorization'] // Cabeceras que se permiten
-};
-app.use(cors(corsOptions));
-// Rutas
-// Obtener todos los usuarios
-app.get('/usuarios', async (req, res) => {
+// Middleware para parsear JSON en el body de las solicitudes
+app.use(bodyParser.json());
+
+// Datos de ejemplo (normalmente esto se conectaría a una base de datos)
+let users = [
+  { nombre: 'Juan', correo: 'juan@ejemplo.com', edad: 30 },
+  { nombre: 'María', correo: 'maria@ejemplo.com', edad: 25 },
+];
+
+// Endpoint para obtener usuarios
+app.get('/usuarios', (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM usuarios');
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Error del servidor');
+    res.json(users); // Asegurarse de que la respuesta sea JSON
+  } catch (error) {
+    res.status(500).json({ error: 'Error del servidor' }); // Enviar un mensaje de error en JSON
   }
 });
 
-// Agregar un usuario
-app.post('/usuarios', async (req, res) => {
+// Endpoint para agregar usuarios
+app.post('/usuarios', (req, res) => {
   try {
     const { nombre, correo, edad } = req.body;
-    const result = await pool.query(
-      'INSERT INTO usuarios (nombre, correo, edad) VALUES ($1, $2, $3) RETURNING *',
-      [nombre, correo, edad]
-    );
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Error del servidor');
+
+    if (!nombre || !correo || !edad) {
+      return res.status(400).json({ error: 'Faltan datos en la solicitud' });
+    }
+
+    // Agregar el nuevo usuario (en una base de datos real, se guardaría ahí)
+    users.push({ nombre, correo, edad });
+    res.status(201).json({ message: 'Usuario agregado exitosamente' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error del servidor' }); // Enviar un mensaje de error en JSON
   }
 });
 
 // Iniciar el servidor
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
